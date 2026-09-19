@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: One row per customer, 1:1 with `raw.jaffle_shop.customers`. Renaming only, no business logic.
+    columns:
+      - name: customer_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_orders
+    description: One row per order, 1:1 with `raw.jaffle_shop.orders`. Renaming only, no business logic.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: Foreign key to `stg_customers`.
+        data_tests:
+          - not_null
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+
+  - name: stg_payments
+    description: >
+      One row per payment attempt, 1:1 with `raw.stripe.payment`. Renaming only.
+      `amount` is in cents, as delivered by the source — the conversion to a
+      decimal currency amount happens downstream in `int_order_payments`, not here,
+      since staging must stay a pure rename/cast of the raw grain.
+    columns:
+      - name: payment_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Foreign key to `stg_orders`.
+        data_tests:
+          - not_null
