@@ -3,15 +3,34 @@ version: 2
 models:
   - name: dim_customers
     description: >
-      Customer dimension. One row per customer, enriched with order-history
-      attributes (first/most recent order date, order count) from
-      `int_customer_orders`.
+      Customer dimension. One row per customer, descriptive attributes
+      only -- no aggregates. See `fct_customer_order_summary` for
+      order-history metrics.
     columns:
       - name: customer_id
         description: Primary key.
         data_tests:
           - unique
           - not_null
+
+  - name: fct_customer_order_summary
+    description: >
+      Accumulating-snapshot fact: one row per customer, with lifetime
+      order metrics (first/most recent order date, order count) as of
+      the last dbt build. Not date-filterable -- for date-scoped order
+      metrics, aggregate `fct_orders` directly instead.
+    columns:
+      - name: customer_id
+        description: Foreign key to `dim_customers`. One row per customer, so also unique here.
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: number_of_orders
+        description: Lifetime count of orders placed by this customer. 0, not null, if they haven't ordered yet.
 
   - name: fct_orders
     description: >
