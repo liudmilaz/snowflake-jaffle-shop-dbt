@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: sv_order_economics
+    description: >
+      Snowflake semantic view (Snowflake-Labs/dbt_semantic_view materialization)
+      over dim_customers, fct_orders, and fct_order_adjustments. Exercises
+      derived, non-additive ratio metrics -- avg_order_value,
+      true_avg_order_value (folds in late-arriving-payment adjustments),
+      and orders_per_customer -- across a two-hop relationship chain.
+      Note: dbt's persist_docs does not apply to semantic views; this
+      description is for dbt docs/manifest only, not the Snowflake object
+      itself.
