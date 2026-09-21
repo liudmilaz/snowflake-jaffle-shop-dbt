@@ -38,3 +38,16 @@ models:
         +materialized: incremental
         +incremental_strategy: merge
         +unique_key: order_id
+      adjustments:
+        # append-only ledger of corrections -- never updated in place,
+        # so no unique_key/merge here, just insert new rows every run
+        +materialized: incremental
+        +incremental_strategy: append
+
+seeds:
+  jaffle_shop:
+    period_close:
+      +column_types:
+        period_start: date
+        period_end: date
+        closed_at: timestamp

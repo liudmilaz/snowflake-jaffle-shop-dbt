@@ -9,6 +9,12 @@
 -- rolled here since `merge` has no built-in equivalent. A payment
 -- landing later than this window still needs a manual reprocess or a
 -- --full-refresh to be picked up.
+--
+-- Guard: never merge into an order whose order_date falls in a closed
+-- accounting period (period_close) -- that number has already been
+-- reported and taxed, and must stay frozen. Late corrections for those
+-- orders are booked into fct_order_adjustments instead, recognized in
+-- the current open period rather than restating the closed one.
 
 select
     orders.order_id,
@@ -33,5 +39,10 @@ where orders.order_id in (
     select order_id
     from {{ ref('stg_payments') }}
     where created > dateadd('day', -7, current_date())
+)
+and not exists (
+    select 1
+    from {{ ref('period_close') }} as period_close
+    where orders.order_date between period_close.period_start and period_close.period_end
 )
 {% endif %}

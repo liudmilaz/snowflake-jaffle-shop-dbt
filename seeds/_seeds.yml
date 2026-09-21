@@ -1,0 +1,18 @@
+version: 2
+
+seeds:
+  - name: period_close
+    description: >
+      Manually-maintained control table: one row per accounting period
+      that has been closed and reported (taxes included). fct_orders'
+      merge is guarded against updating any order in a closed period;
+      corrections to closed-period orders are booked into
+      fct_order_adjustments instead, recognized in the current open
+      period rather than restating the closed one.
+    columns:
+      - name: period_start
+        data_tests:
+          - not_null
+      - name: period_end
+        data_tests:
+          - not_null
