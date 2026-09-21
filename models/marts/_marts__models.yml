@@ -56,4 +56,39 @@ models:
                 to: ref('dim_customers')
                 field: customer_id
       - name: amount
-        description: Total amount successfully paid for the order, in dollars.
+        description: >
+          Total amount successfully paid for the order, in dollars.
+          Frozen once order_date falls in a closed period (period_close)
+          -- see fct_order_adjustments for corrections booked after close.
+
+  - name: fct_order_adjustments
+    description: >
+      Append-only ledger of corrections to orders in an already-closed
+      accounting period. Each row is the residual delta between the
+      true, currently-known payment total and what's already been
+      recognized (frozen fct_orders.amount + prior adjustments),
+      recognized in the current open period rather than restating the
+      closed one. Never updated or deleted once written.
+    columns:
+      - name: adjustment_id
+        description: Primary key (hash of order_id + booking timestamp).
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Foreign key to `fct_orders`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: amount_delta
+        description: Correction amount, in dollars. Can be negative (an overpayment correction).
+        data_tests:
+          - not_null
+      - name: reason
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['late_arriving_payment']
