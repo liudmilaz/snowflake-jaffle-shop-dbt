@@ -1,0 +1,14 @@
+version: 2
+
+snapshots:
+  - name: dim_customers_snapshot
+    description: >
+      SCD Type 2 history of customer attributes (first_name, last_name).
+      One row per customer per distinct version; dbt_valid_to is null on
+      the current version. dim_customers filters this down to current
+      rows only.
+    columns:
+      - name: customer_id
+        description: Natural key. Not unique on its own -- unique_key + dbt_valid_from is.
+        data_tests:
+          - not_null
