@@ -1,3 +1,4 @@
+-- For training purpose:
 -- Incremental (merge/unique_key) -- materialization set at folder level
 -- in dbt_project.yml (models.jaffle_shop.marts.events).
 --
@@ -24,7 +25,9 @@ select
     coalesce(order_payments.total_amount_paid, 0) as amount
 from {{ ref('stg_orders') }} as orders
 left join {{ ref('int_order_payments') }} as order_payments
-    on orders.order_id = order_payments.order_id
+    -- on orders.order_id = order_payments.order_id
+    using(order_id)
+
 
 {% if is_incremental() %}
 where orders.order_id in (
