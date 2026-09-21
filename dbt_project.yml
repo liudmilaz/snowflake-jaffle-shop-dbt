@@ -34,3 +34,7 @@ models:
       +materialized: view
     marts:
       +materialized: table
+      events:
+        +materialized: incremental
+        +incremental_strategy: merge
+        +unique_key: order_id
