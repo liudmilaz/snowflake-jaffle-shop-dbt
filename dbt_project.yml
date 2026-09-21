@@ -19,6 +19,17 @@ models:
   jaffle_shop:
     staging:
       +materialized: view
+      events:
+        # week isn't a supported batch_size (dbt microbatch only allows
+        # hour/day/month/year) -- day is the closest fit to how this data
+        # actually varies. For learning purposes only: raw.jaffle_shop.orders
+        # and raw.stripe.payment are 99/120-row static snapshots, nowhere
+        # near the scale where microbatch earns its keep -- see the actual
+        # payoff explained where this was discussed.
+        +materialized: incremental
+        +incremental_strategy: microbatch
+        +batch_size: day
+        +begin: '2018-01-01'
     intermediate:
       +materialized: view
     marts:

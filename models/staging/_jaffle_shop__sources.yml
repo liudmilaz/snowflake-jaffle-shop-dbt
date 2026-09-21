@@ -10,3 +10,5 @@ sources:
         description: One record per customer.
       - name: orders
         description: One record per order. Includes cancelled and deleted orders.
+        config:
+          event_time: order_date
