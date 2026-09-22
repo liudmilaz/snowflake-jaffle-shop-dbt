@@ -1,0 +1,8 @@
+server:
+  port: 19415
+
+sources:
+  jaffle_shop:
+    type: dbt_profile
+    profile: jaffle_shop
+    target: dev
