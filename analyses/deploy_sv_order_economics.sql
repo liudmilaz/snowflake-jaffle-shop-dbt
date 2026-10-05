@@ -1,18 +1,16 @@
--- Semantic view for testing non-additive ratio metrics across three tables:
--- dim_customers -> fct_orders -> fct_order_adjustments.
---
--- true_avg_order_value is the one to watch: it folds fct_order_adjustments'
--- late-arriving-payment corrections (see that model's header) into the
--- ratio, so it only comes out correct if the semantic view recomputes the
--- division at query time rather than pre-aggregating and summing/averaging
--- the metric column across grains.
+-- Standalone DDL for sv_order_economics, bypassing dbt's semantic_view
+-- materialization (see PR #2 / dbt Cloud Fusion debugging thread).
+-- Prerequisite: dim_customers, fct_orders, fct_order_adjustments must
+-- already exist in PC_DBT_DB.dbt_LZolotukhina -- run
+--   dbt build --select +sv_order_economics --exclude sv_order_economics
+-- (or the full `dbt build`) via dbt Core first if they don't.
 
-{{ config(materialized='semantic_view') }}
+create or replace semantic view PC_DBT_DB.dbt_LZolotukhina.sv_order_economics
 
 TABLES(
-  customers AS {{ ref('dim_customers') }} PRIMARY KEY (customer_id),
-  orders AS {{ ref('fct_orders') }} PRIMARY KEY (order_id),
-  adjustments AS {{ ref('fct_order_adjustments') }} PRIMARY KEY (adjustment_id)
+  customers AS PC_DBT_DB.dbt_LZolotukhina.dim_customers PRIMARY KEY (customer_id),
+  orders AS PC_DBT_DB.dbt_LZolotukhina.fct_orders PRIMARY KEY (order_id),
+  adjustments AS PC_DBT_DB.dbt_LZolotukhina.fct_order_adjustments PRIMARY KEY (adjustment_id)
 )
 
 RELATIONSHIPS(
@@ -42,4 +40,4 @@ METRICS(
   orders_per_customer AS orders.total_orders / customers.total_customers
 )
 
-COMMENT = 'Order economics: non-additive ratio metrics over dim_customers, fct_orders, fct_order_adjustments'
+COMMENT = 'Order economics: non-additive ratio metrics over dim_customers, fct_orders, fct_order_adjustments';

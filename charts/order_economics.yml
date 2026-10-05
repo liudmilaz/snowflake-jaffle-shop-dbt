@@ -1,0 +1,86 @@
+title: "Order economics"
+notes: "Non-additive ratio metrics from sv_order_economics, the Snowflake semantic view over dim_customers, fct_orders, and fct_order_adjustments."
+
+source: jaffle_shop
+
+queries:
+  overview: |
+    select * from semantic_view(
+      {{ ref('sv_order_economics') }}
+      metrics avg_order_value, true_avg_order_value, orders_per_customer, total_orders, total_customers
+    )
+  by_status: |
+    select * from semantic_view(
+      {{ ref('sv_order_economics') }}
+      metrics avg_order_value, true_avg_order_value, total_orders
+      dimensions order_status
+    )
+
+charts:
+  k_avg_order_value:
+    label: "Avg order value"
+    type: kpi
+    query: overview
+    value: avg_order_value
+    style:
+      value:
+        format: currency_full
+
+  k_true_avg_order_value:
+    label: "True avg order value"
+    type: kpi
+    query: overview
+    value: true_avg_order_value
+    style:
+      value:
+        format: currency_full
+
+  k_orders_per_customer:
+    label: "Orders per customer"
+    type: kpi
+    query: overview
+    value: orders_per_customer
+
+  status_breakdown:
+    title: "Avg order value by status"
+    type: bar
+    query: by_status
+    x: order_status
+    y: avg_order_value
+    sort:
+      by: avg_order_value
+      order: desc
+    style:
+      orientation: horizontal
+      axis_y:
+        labels:
+          format: currency_whole
+
+  status_table:
+    title: "Order status detail"
+    type: table
+    query: by_status
+    style:
+      columns:
+        order_status:
+          label: Status
+        total_orders:
+          label: Orders
+        avg_order_value:
+          label: Avg order value
+          format: currency_full
+        true_avg_order_value:
+          label: True avg order value
+          format: currency_full
+
+rows:
+  - cols:
+      - k_avg_order_value
+      - k_true_avg_order_value
+      - k_orders_per_customer
+
+  - cols:
+      - width: "60%"
+        rows: [status_breakdown]
+      - width: "40%"
+        rows: [status_table]
