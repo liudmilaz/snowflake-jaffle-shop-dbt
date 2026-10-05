@@ -1,8 +1,6 @@
--- Materialization (incremental/microbatch/batch_size/begin) is set at the
--- folder level in dbt_project.yml (models.jaffle_shop.staging.events).
--- event_time can't live there -- it's this model's own column name -- so
--- it's the one config that has to stay here.
-{{ config(event_time='order_date') }}
+-- Materialization (incremental/append) is set at the folder level in
+-- dbt_project.yml (models.jaffle_shop.staging.events). Plain incremental,
+-- not microbatch -- see that config's comment for why.
 
 select
     id as order_id,
@@ -10,3 +8,7 @@ select
     order_date,
     status
 from {{ source('jaffle_shop', 'orders') }}
+
+{% if is_incremental() %}
+where order_date > (select coalesce(max(order_date), '1900-01-01'::date) from {{ this }})
+{% endif %}
