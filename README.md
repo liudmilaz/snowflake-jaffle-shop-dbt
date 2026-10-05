@@ -11,3 +11,9 @@ dbt test
 ```
 
 Requires a `jaffle_shop` profile in `~/.dbt/profiles.yml` pointing at the Snowflake trial account (see [dbt's Snowflake setup docs](https://docs.getdbt.com/docs/core/connect-data-platform/snowflake-setup)).
+
+## Licence
+
+MIT — © 2026 Liudmila Zolotukhina. See [LICENSE](LICENSE).
+
+Use it, copy it, change it, teach from it. The only requirement is that the copyright notice travels with copies.

@@ -17,4 +17,37 @@ clean-targets:
 
 models:
   jaffle_shop:
-    +materialized: view
+    staging:
+      +materialized: view
+      events:
+        # Was microbatch -- reverted. A --full-refresh batches from `begin`
+        # through "now", and with begin fixed at 2018-01-01 against a real
+        # clock years past that, it exploded into 3186 daily batches (most
+        # touching zero rows, since real data stops 2018-04-09), each its
+        # own DELETE+INSERT+DROP round trip -- observed ~2.5hr full refresh
+        # in dbt Cloud logs. Plain `append` does the same update as one
+        # query instead of thousands -- still incremental, just without
+        # microbatch's per-day execution model this data doesn't need.
+        +materialized: incremental
+        +incremental_strategy: append
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+      events:
+        +materialized: incremental
+        +incremental_strategy: merge
+        +unique_key: order_id
+      adjustments:
+        # append-only ledger of corrections -- never updated in place,
+        # so no unique_key/merge here, just insert new rows every run
+        +materialized: incremental
+        +incremental_strategy: append
+
+seeds:
+  jaffle_shop:
+    period_close:
+      +column_types:
+        period_start: date
+        period_end: date
+        closed_at: timestamp

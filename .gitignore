@@ -2,4 +2,5 @@ target/
 dbt_packages/
 logs/
 .user.yml
+renders/
 dbt_internal_packages/

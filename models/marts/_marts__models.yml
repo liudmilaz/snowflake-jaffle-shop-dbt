@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      Customer dimension. One row per customer (current state only),
+      descriptive attributes only -- no aggregates. See
+      `fct_customer_order_summary` for order-history metrics, and
+      `dim_customers_snapshot` for SCD Type 2 history of these
+      attributes over time.
+    columns:
+      - name: customer_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+
+  - name: fct_customer_order_summary
+    description: >
+      Accumulating-snapshot fact: one row per customer, with lifetime
+      order metrics (first/most recent order date, order count) as of
+      the last dbt build. Not date-filterable -- for date-scoped order
+      metrics, aggregate `fct_orders` directly instead.
+    columns:
+      - name: customer_id
+        description: Foreign key to `dim_customers`. One row per customer, so also unique here.
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: number_of_orders
+        description: Lifetime count of orders placed by this customer. 0, not null, if they haven't ordered yet.
+
+  - name: fct_orders
+    description: >
+      Order fact table. One row per order, at the same grain as
+      `stg_orders`, with the total successfully-paid amount as its
+      measure. Joins to `dim_customers` via `customer_id`. Incremental
+      (merge/unique_key=order_id) -- see the model's own comments for
+      how it re-scopes on late-arriving payments.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: Foreign key to `dim_customers`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: amount
+        description: >
+          Total amount successfully paid for the order, in dollars.
+          Frozen once order_date falls in a closed period (period_close)
+          -- see fct_order_adjustments for corrections booked after close.
+
+  - name: fct_order_adjustments
+    description: >
+      Append-only ledger of corrections to orders in an already-closed
+      accounting period. Each row is the residual delta between the
+      true, currently-known payment total and what's already been
+      recognized (frozen fct_orders.amount + prior adjustments),
+      recognized in the current open period rather than restating the
+      closed one. Never updated or deleted once written.
+    columns:
+      - name: adjustment_id
+        description: Primary key (hash of order_id + booking timestamp).
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Foreign key to `fct_orders`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: amount_delta
+        description: Correction amount, in dollars. Can be negative (an overpayment correction).
+        data_tests:
+          - not_null
+      - name: reason
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['late_arriving_payment']

@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: stripe
+    description: Raw payment events from Stripe, loaded into Snowflake from S3.
+    database: raw
+    schema: stripe
+    tables:
+      - name: payment
+        description: One record per payment attempt on an order.
+        config:
+          event_time: created
