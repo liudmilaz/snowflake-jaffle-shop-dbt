@@ -1,3 +1,5 @@
+-- depends_on: {{ ref('stg_payments') }}
+-- depends_on: {{ ref('period_close') }}
 -- Incremental (merge/unique_key) -- materialization set at folder level
 -- in dbt_project.yml (models.jaffle_shop.marts.events).
 --
