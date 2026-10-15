@@ -10,6 +10,7 @@ models:
       attributes over time.
     config:
       meta:
+        primary_key: customer_id
         joins:
           - join: fct_orders
             relationship: one-to-many
@@ -71,6 +72,7 @@ models:
       how it re-scopes on late-arriving payments.
     config:
       meta:
+        primary_key: order_id
         joins:
           - join: dim_customers
             relationship: many-to-one
@@ -133,6 +135,9 @@ models:
       recognized (frozen fct_orders.amount + prior adjustments),
       recognized in the current open period rather than restating the
       closed one. Never updated or deleted once written.
+    config:
+      meta:
+        primary_key: adjustment_id
     columns:
       - name: adjustment_id
         description: Primary key (hash of order_id + booking timestamp).

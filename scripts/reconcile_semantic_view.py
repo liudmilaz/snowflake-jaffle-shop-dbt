@@ -26,12 +26,22 @@ CHECKS = [
                    {"total_orders": "fct_orders_total_orders",
                     "avg_order_value": "fct_orders_avg_order_value",
                     "true_avg_order_value": "fct_orders_true_avg_order_value"}),
+] + [
+    ("dim_customers", {f"order_{g}": f"fct_orders_order_date_{g}"},
+     {"avg_order_value": "fct_orders_avg_order_value",
+      "true_avg_order_value": "fct_orders_true_avg_order_value",
+      "orders_per_customer": "dim_customers_orders_per_customer"})
+    for g in ("month", "quarter", "year")
 ]
+
+def norm(v):
+    """Dates come back as 2018-01-01 (Snowflake) or 2018-01-01T00:00:00Z (Lightdash)."""
+    return None if v in (None, "", "None") else str(v)[:10]
 
 def sv_rows(dims, metrics):
     q = f"select * from semantic_view({SV} metrics {', '.join(metrics)}" + (f" dimensions {', '.join(dims)}" if dims else "") + ")"
     out = subprocess.run(["snow", "sql", "-c", CONN, "-q", q, "--format", "csv"], capture_output=True, text=True, check=True).stdout
-    return {tuple(r.get(d.upper()) for d in dims): {m: r[m.upper()] for m in metrics} for r in csv.DictReader(io.StringIO(out))}
+    return {tuple(norm(r.get(d.upper())) for d in dims): {m: r[m.upper()] for m in metrics} for r in csv.DictReader(io.StringIO(out)) if all(norm(r.get(d.upper())) for d in dims)}
 
 def api(path, body=None):
     req = urllib.request.Request(URL + path, data=json.dumps(body).encode() if body else None,
@@ -46,11 +56,14 @@ def ld_rows(explore, dims, metrics):
         r = api(f"/api/v2/projects/{PROJECT}/query/{q}")
         if r["status"] == "ready": break
         time.sleep(1)
-    return {tuple(str(row[d]["value"]["raw"]) for d in dims.values()): {m: row[i]["value"]["raw"] for m, i in metrics.items()} for row in r["rows"]}
+    return {tuple(norm(row[d]["value"]["raw"]) for d in dims.values()): {m: row[i]["value"]["raw"] for m, i in metrics.items()} for row in r["rows"] if all(norm(row[d]["value"]["raw"]) for d in dims.values())}
 
 bad = 0
 for explore, dims, metrics in CHECKS:
     sv, ld = sv_rows(list(dims), list(metrics)), ld_rows(explore, dims, metrics)
+    for key in set(ld) - set(sv):
+        bad += 1
+        print("FAIL", explore, dict(zip(dims, key)), "present in Lightdash only")
     for key, sv_vals in sv.items():
         for m, sv_v in sv_vals.items():
             a, b = float(sv_v or 0), float((ld.get(key, {}).get(m)) or 0)
