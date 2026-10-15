@@ -8,9 +8,33 @@ models:
       `fct_customer_order_summary` for order-history metrics, and
       `dim_customers_snapshot` for SCD Type 2 history of these
       attributes over time.
+    config:
+      meta:
+        joins:
+          - join: fct_orders
+            relationship: one-to-many
+            sql_on: ${dim_customers.customer_id} = ${fct_orders.customer_id}
+          # joins are not transitive: needed so fct_orders' true_avg_order_value resolves here
+          - join: fct_order_adjustments
+            relationship: one-to-many
+            sql_on: ${fct_orders.order_id} = ${fct_order_adjustments.order_id}
     columns:
       - name: customer_id
         description: Primary key.
+        config:
+          meta:
+            metrics:
+              total_customers:
+                type: count_distinct
+                label: Total customers
+              # Lives here, not on fct_orders: with customers as the base
+              # table every customer is counted, including those with no
+              # orders. From fct_orders the denominator only counts
+              # customers who have ordered.
+              orders_per_customer:
+                type: number
+                label: Orders per customer
+                sql: ${fct_orders.total_orders} / NULLIF(${total_customers}, 0)
         data_tests:
           - unique
           - not_null
@@ -41,9 +65,24 @@ models:
       measure. Joins to `dim_customers` via `customer_id`. Incremental
       (merge/unique_key=order_id) -- see the model's own comments for
       how it re-scopes on late-arriving payments.
+    config:
+      meta:
+        joins:
+          - join: dim_customers
+            relationship: many-to-one
+            sql_on: ${fct_orders.customer_id} = ${dim_customers.customer_id}
+          - join: fct_order_adjustments
+            relationship: one-to-many
+            sql_on: ${fct_orders.order_id} = ${fct_order_adjustments.order_id}
     columns:
       - name: order_id
         description: Primary key.
+        config:
+          meta:
+            metrics:
+              total_orders:
+                type: count_distinct
+                label: Total orders
         data_tests:
           - unique
           - not_null
@@ -60,6 +99,23 @@ models:
           Total amount successfully paid for the order, in dollars.
           Frozen once order_date falls in a closed period (period_close)
           -- see fct_order_adjustments for corrections booked after close.
+        config:
+          meta:
+            metrics:
+              total_revenue:
+                type: sum
+                label: Total revenue
+                format: usd
+              avg_order_value:
+                type: number
+                label: Avg order value
+                format: usd
+                sql: ${total_revenue} / NULLIF(${total_orders}, 0)
+              true_avg_order_value:
+                type: number
+                label: True avg order value
+                format: usd
+                sql: (${total_revenue} + COALESCE(${fct_order_adjustments.total_adjustments}, 0)) / NULLIF(${total_orders}, 0)
 
   - name: fct_order_adjustments
     description: >
@@ -85,6 +141,13 @@ models:
                 field: order_id
       - name: amount_delta
         description: Correction amount, in dollars. Can be negative (an overpayment correction).
+        config:
+          meta:
+            metrics:
+              total_adjustments:
+                type: sum
+                label: Total adjustments
+                format: usd
         data_tests:
           - not_null
       - name: reason
