@@ -1,0 +1,23 @@
+name: True avg order value
+slug: kpi-true-avg-order-value
+spaceSlug: order-economics
+tableName: fct_orders
+metricQuery:
+  exploreName: fct_orders
+  dimensions: []
+  metrics:
+    - fct_orders_true_avg_order_value
+  filters: {}
+  sorts: []
+  limit: 1
+  tableCalculations: []
+  additionalMetrics: []
+chartConfig:
+  type: big_number
+  config:
+    label: True avg order value
+    selectedField: fct_orders_true_avg_order_value
+tableConfig:
+  columnOrder:
+    - fct_orders_true_avg_order_value
+version: 1

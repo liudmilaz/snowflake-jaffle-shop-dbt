@@ -38,6 +38,10 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: first_name
+        description: Customer first name (current version).
+      - name: last_name
+        description: Customer last name, abbreviated (current version).
 
   - name: fct_customer_order_summary
     description: >
@@ -94,6 +98,10 @@ models:
               arguments:
                 to: ref('dim_customers')
                 field: customer_id
+      - name: order_date
+        description: Date the order was placed.
+      - name: status
+        description: Order lifecycle status (placed, shipped, completed, return_pending, returned).
       - name: amount
         description: >
           Total amount successfully paid for the order, in dollars.

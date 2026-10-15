@@ -1,0 +1,23 @@
+name: Orders per customer
+slug: kpi-orders-per-customer
+spaceSlug: order-economics
+tableName: dim_customers
+metricQuery:
+  exploreName: dim_customers
+  dimensions: []
+  metrics:
+    - dim_customers_orders_per_customer
+  filters: {}
+  sorts: []
+  limit: 1
+  tableCalculations: []
+  additionalMetrics: []
+chartConfig:
+  type: big_number
+  config:
+    label: Orders per customer
+    selectedField: dim_customers_orders_per_customer
+tableConfig:
+  columnOrder:
+    - dim_customers_orders_per_customer
+version: 1
