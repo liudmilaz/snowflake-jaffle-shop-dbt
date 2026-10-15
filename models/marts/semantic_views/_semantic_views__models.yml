@@ -11,3 +11,22 @@ models:
       Note: dbt's persist_docs does not apply to semantic views; this
       description is for dbt docs/manifest only, not the Snowflake object
       itself.
+    data_tests:
+      # Semantic view vs. Lightdash metric definitions, per date grain.
+      # See macros/lightdash_order_economics.sql and
+      # tests/generic/reconcile_lightdash_metrics.sql.
+      - reconcile_lightdash_metrics:
+          name: reconcile_lightdash_monthly
+          arguments:
+            dimension: order_month
+            grain: month
+      - reconcile_lightdash_metrics:
+          name: reconcile_lightdash_quarterly
+          arguments:
+            dimension: order_quarter
+            grain: quarter
+      - reconcile_lightdash_metrics:
+          name: reconcile_lightdash_yearly
+          arguments:
+            dimension: order_year
+            grain: year

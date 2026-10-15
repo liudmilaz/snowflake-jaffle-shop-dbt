@@ -1,0 +1,66 @@
+name: Order economics
+description: Non-additive ratio metrics over customers, orders and late-payment adjustments. Mirrors the dbt Charts board and the sv_order_economics semantic view.
+slug: order-economics
+spaceSlug: order-economics
+tiles:
+  - x: 0
+    "y": 0
+    w: 12
+    h: 4
+    tabUuid: null
+    type: saved_chart
+    properties:
+      title: ""
+      hideTitle: false
+      chartSlug: kpi-avg-order-value
+    tileSlug: kpi-avg-order-value
+  - x: 12
+    "y": 0
+    w: 12
+    h: 4
+    tabUuid: null
+    type: saved_chart
+    properties:
+      title: ""
+      hideTitle: false
+      chartSlug: kpi-true-avg-order-value
+    tileSlug: kpi-true-avg-order-value
+  - x: 24
+    "y": 0
+    w: 12
+    h: 4
+    tabUuid: null
+    type: saved_chart
+    properties:
+      title: ""
+      hideTitle: false
+      chartSlug: kpi-orders-per-customer
+    tileSlug: kpi-orders-per-customer
+  - x: 0
+    "y": 4
+    w: 21
+    h: 10
+    tabUuid: null
+    type: saved_chart
+    properties:
+      title: ""
+      hideTitle: false
+      chartSlug: avg-order-value-by-status
+    tileSlug: avg-order-value-by-status
+  - x: 21
+    "y": 4
+    w: 15
+    h: 10
+    tabUuid: null
+    type: saved_chart
+    properties:
+      title: ""
+      hideTitle: false
+      chartSlug: order-status-detail
+    tileSlug: order-status-detail
+filters:
+  metrics: []
+  dimensions: []
+  tableCalculations: []
+tabs: []
+version: 1

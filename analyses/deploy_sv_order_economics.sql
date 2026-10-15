@@ -27,6 +27,8 @@ DIMENSIONS(
   customers.customer_name AS customers.first_name || ' ' || customers.last_name,
   orders.order_status AS orders.status,
   orders.order_month AS date_trunc('month', orders.order_date),
+  orders.order_quarter AS date_trunc('quarter', orders.order_date),
+  orders.order_year AS date_trunc('year', orders.order_date),
   adjustments.reason AS adjustments.reason
 )
 

@@ -1,0 +1,29 @@
+name: Order status detail
+slug: order-status-detail
+spaceSlug: order-economics
+tableName: fct_orders
+metricQuery:
+  exploreName: fct_orders
+  dimensions:
+    - fct_orders_status
+  metrics:
+    - fct_orders_total_orders
+    - fct_orders_avg_order_value
+    - fct_orders_true_avg_order_value
+  filters: {}
+  sorts:
+    - fieldId: fct_orders_total_orders
+      descending: true
+  limit: 50
+  tableCalculations: []
+  additionalMetrics: []
+chartConfig:
+  type: table
+  config: {}
+tableConfig:
+  columnOrder:
+    - fct_orders_status
+    - fct_orders_total_orders
+    - fct_orders_avg_order_value
+    - fct_orders_true_avg_order_value
+version: 1

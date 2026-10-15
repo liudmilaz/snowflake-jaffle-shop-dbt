@@ -1,0 +1,38 @@
+name: Avg order value by status
+slug: avg-order-value-by-status
+spaceSlug: order-economics
+tableName: fct_orders
+metricQuery:
+  exploreName: fct_orders
+  dimensions:
+    - fct_orders_status
+  metrics:
+    - fct_orders_avg_order_value
+  filters: {}
+  sorts:
+    - fieldId: fct_orders_avg_order_value
+      descending: true
+  limit: 50
+  tableCalculations: []
+  additionalMetrics: []
+chartConfig:
+  type: cartesian
+  config:
+    layout:
+      xField: fct_orders_status
+      yField:
+        - fct_orders_avg_order_value
+      flipAxes: true
+    eChartsConfig:
+      series:
+        - type: bar
+          encode:
+            xRef:
+              field: fct_orders_status
+            yRef:
+              field: fct_orders_avg_order_value
+tableConfig:
+  columnOrder:
+    - fct_orders_status
+    - fct_orders_avg_order_value
+version: 1
